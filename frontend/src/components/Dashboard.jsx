@@ -21,7 +21,7 @@ import {
   Pause,
   Play
 } from 'lucide-react'
-import { getExportUrl, getFlights, getIndexHistory, getLatestIndex } from '../api'
+import { calculateIndex, getExportUrl, getFlights, getIndexHistory, getLatestIndex } from '../api'
 
 export default function Dashboard({ onBackToLanding, onGoToRouteAnalytics }) {
   const [method, setMethod] = useState('jevons') // 'jevons' | 'laspeyres'
@@ -32,6 +32,8 @@ export default function Dashboard({ onBackToLanding, onGoToRouteAnalytics }) {
   const [indexHistory, setIndexHistory] = useState([])
   const [flightRecords, setFlightRecords] = useState([])
   const [apiError, setApiError] = useState('')
+  const [isCalculating, setIsCalculating] = useState(false)
+  const [calcSuccessMsg, setCalcSuccessMsg] = useState('')
   const [logs, setLogs] = useState([
     { id: 1, time: '15:28:02', level: 'INFO', msg: 'Scraped IndiGo DEL-BOM: ₹5,700 - OK' },
     { id: 2, time: '15:28:04', level: 'FEE', msg: 'Stripped UDF (₹450) & GST (₹285) on BOM-BLR' },
@@ -41,25 +43,47 @@ export default function Dashboard({ onBackToLanding, onGoToRouteAnalytics }) {
     { id: 6, time: '15:28:15', level: 'FEED', msg: 'MoSPI NAS batch transmission acknowledged #8914' },
   ])
 
+  const loadDashboardData = async () => {
+    try {
+      const [latest, history, flights] = await Promise.all([
+        getLatestIndex(),
+        getIndexHistory('COMPOSITE'),
+        getFlights({ limit: 1000 })
+      ])
+      setLatestIndex(latest)
+      setIndexHistory(history)
+      setFlightRecords(flights)
+      setApiError('')
+    } catch (error) {
+      setApiError(error.message)
+    }
+  }
+
   useEffect(() => {
     let active = true
 
-    Promise.all([getLatestIndex(), getIndexHistory('COMPOSITE'), getFlights({ limit: 1000 })])
-      .then(([latest, history, flights]) => {
-        if (!active) return
-        setLatestIndex(latest)
-        setIndexHistory(history)
-        setFlightRecords(flights)
-        setApiError('')
-      })
-      .catch((error) => {
-        if (active) setApiError(error.message)
-      })
+    loadDashboardData()
 
     return () => {
       active = false
     }
   }, [])
+
+  const handleRecalculateIndex = async () => {
+    setIsCalculating(true)
+    setCalcSuccessMsg('')
+    try {
+      const res = await calculateIndex()
+      const compositeVal = res.summary?.COMPOSITE ?? 'Updated'
+      setCalcSuccessMsg(`Price index recalculated successfully! Generated ${res.indices_generated} sector indices (Composite: ${compositeVal}).`)
+      await loadDashboardData()
+      setTimeout(() => setCalcSuccessMsg(''), 6000)
+    } catch (error) {
+      setApiError(`Calculation failed: ${error.message}`)
+    } finally {
+      setIsCalculating(false)
+    }
+  }
 
   // Periodic log streamer simulation
   useEffect(() => {
@@ -98,8 +122,12 @@ export default function Dashboard({ onBackToLanding, onGoToRouteAnalytics }) {
   }, [isTerminalStreaming])
 
   const compositeIndex = latestIndex.find((record) => record.route === 'COMPOSITE')
-  const averageFare = flightRecords.length > 0
-    ? flightRecords.reduce((total, record) => total + record.total_fare, 0) / flightRecords.length
+  const horizonDays = bookingWindow === '0-3d' ? [0, 1, 2, 3] : (bookingWindow === '7d' ? [7] : (bookingWindow === '15d' ? [15] : [30]))
+  const horizonFlights = flightRecords.filter((r) => horizonDays.includes(r.advance_days))
+  const displayFlights = horizonFlights.length > 0 ? horizonFlights : flightRecords
+
+  const averageFare = displayFlights.length > 0
+    ? displayFlights.reduce((total, record) => total + record.base_fare, 0) / displayFlights.length
     : null
   const activeRouteCount = new Set(flightRecords.map((record) => record.route)).size
 
@@ -295,6 +323,13 @@ export default function Dashboard({ onBackToLanding, onGoToRouteAnalytics }) {
             Backend data unavailable: {apiError}. Showing the dashboard demo values until the API is reachable.
           </div>
         )}
+
+        {calcSuccessMsg && (
+          <div className="rounded-xl border border-emerald-500/40 bg-emerald-950/70 px-4 py-3 text-sm text-emerald-200 flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span>{calcSuccessMsg}</span>
+          </div>
+        )}
         
         {/* Section 1: Control Header Bar */}
         <div className="p-4 sm:p-5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-xl backdrop-blur-md flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
@@ -368,6 +403,17 @@ export default function Dashboard({ onBackToLanding, onGoToRouteAnalytics }) {
                 </button>
               ))}
             </div>
+
+            {/* Recalculate Index Trigger Button */}
+            <button
+              onClick={handleRecalculateIndex}
+              disabled={isCalculating}
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold text-cyan-300 bg-slate-900 hover:bg-slate-800 border border-cyan-500/40 hover:border-cyan-400 shadow-md active:scale-95 transition-all disabled:opacity-50"
+              title="Trigger real-time index calculation across routes and windows"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isCalculating ? 'animate-spin text-amber-400' : 'text-cyan-400'}`} />
+              <span>{isCalculating ? 'Calculating...' : 'Recalculate Index'}</span>
+            </button>
 
             {/* Export CSV Action Button */}
             <button

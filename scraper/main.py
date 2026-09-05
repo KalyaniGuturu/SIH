@@ -18,7 +18,32 @@ CORRIDORS = [
     ("HYD", "MAA")  # Hyderabad to Chennai (Regional Metro)
 ]
 
-ADVANCE_BUCKETS = [1, 7]
+ADVANCE_BUCKETS = [1, 7, 15, 30]
+
+def send_batch_to_backend(batch_data, api_base_url=None):
+    """
+    Sends normalized flight quotes directly to the backend batch ingestion endpoint.
+    Uses standard library urllib to avoid mandatory third-party dependencies.
+    """
+    if not batch_data:
+        return
+    if api_base_url is None:
+        api_base_url = os.getenv("BACKEND_API_BASE_URL", "http://127.0.0.1:8000")
+    target_url = f"{api_base_url.rstrip('/')}/api/flights/batch"
+
+    try:
+        import urllib.request
+        req = urllib.request.Request(
+            target_url,
+            data=json.dumps(batch_data).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST"
+        )
+        with urllib.request.urlopen(req, timeout=10) as response:
+            resp_body = response.read().decode("utf-8")
+            logger.info(f"Successfully posted {len(batch_data)} records to backend API ({target_url}): {resp_body}")
+    except Exception as e:
+        logger.info(f"Backend API offline or unreachable ({e}). Batch remains saved in local JSON.")
 
 def run_collection_cycle():
     logger.info("Starting Playwright dynamic web scraping collection cycle...")
@@ -64,6 +89,9 @@ def run_collection_cycle():
     with open(processed_file, "w", encoding="utf-8") as f:
         json.dump(collected_batch, f, indent=2)
     logger.info(f"Updated latest processed feed at: {processed_file}")
+
+    # Synchronize batch with Backend API
+    send_batch_to_backend(collected_batch)
 
     return collected_batch
 

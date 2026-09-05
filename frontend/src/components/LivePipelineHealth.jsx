@@ -1,7 +1,25 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Activity, CheckCircle2, XCircle, Gauge } from 'lucide-react'
+import { getFlights } from '../api'
 
 export default function LivePipelineHealth() {
+  const [carrierCounts, setCarrierCounts] = useState({})
+
+  useEffect(() => {
+    getFlights({ limit: 1000 })
+      .then((records) => {
+        const counts = {}
+        records.forEach((r) => {
+          const key = r.airline?.trim()
+          if (key) counts[key] = (counts[key] || 0) + 1
+        })
+        setCarrierCounts(counts)
+      })
+      .catch(() => {
+        // Fallback when backend is offline
+      })
+  }, [])
+
   const pipelines = [
     {
       airline: 'IndiGo (6E)',
@@ -114,6 +132,9 @@ export default function LivePipelineHealth() {
 
                   <div className="flex items-center gap-4 font-mono">
                     <span className="text-[11px] text-slate-400 hidden sm:inline">
+                      {(carrierCounts[item.airline.split(' ')[0]] || carrierCounts[item.airline])
+                        ? `${carrierCounts[item.airline.split(' ')[0]] || carrierCounts[item.airline]} quotes • `
+                        : ''}
                       {item.speed}
                     </span>
 
