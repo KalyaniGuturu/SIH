@@ -17,7 +17,7 @@ import {
   CheckCircle2,
   AlertCircle
 } from 'lucide-react'
-import { getFlights, getLatestIndex, getRoutes } from '../api'
+import { getLatestIndex, getRoutes } from '../api'
 
 export default function RouteAnalytics({ onBackToLanding, onGoToDashboard }) {
   // Route selection
@@ -101,7 +101,6 @@ export default function RouteAnalytics({ onBackToLanding, onGoToDashboard }) {
   const [isRadarHovered, setIsRadarHovered] = useState(false)
   const [availableRoutes, setAvailableRoutes] = useState([])
   const [latestIndexes, setLatestIndexes] = useState([])
-  const [routeFlights, setRouteFlights] = useState([])
 
   useEffect(() => {
     Promise.all([getRoutes(), getLatestIndex()])
@@ -114,22 +113,9 @@ export default function RouteAnalytics({ onBackToLanding, onGoToDashboard }) {
       })
   }, [])
 
-  useEffect(() => {
-    getFlights({ route: selectedRouteId, limit: 100 })
-      .then((records) => {
-        setRouteFlights(records)
-      })
-      .catch(() => {
-        setRouteFlights([])
-      })
-  }, [selectedRouteId])
-
   const activeRoute = routesList.find((r) => r.id === selectedRouteId) || routesList[0]
   const liveIndex = latestIndexes.find((record) => record.route === activeRoute.id)
   const displayedRouteIndex = liveIndex?.index_value ?? activeRoute.routeIndex
-  const displayedAvgPrice = routeFlights.length > 0
-    ? `₹${Math.round(routeFlights.reduce((acc, f) => acc + f.total_fare, 0) / routeFlights.length).toLocaleString()}`
-    : activeRoute.avgPrice
 
   // Filtered dropdown list
   const filteredRoutes = routesList.filter(
@@ -227,35 +213,12 @@ export default function RouteAnalytics({ onBackToLanding, onGoToDashboard }) {
   })
 
   // Advance Window Price Curve Data (Escalation as departure approaches)
-  const advanceCurve = React.useMemo(() => {
-    if (!routeFlights || routeFlights.length === 0) {
-      return [
-        { window: '30 Days Out', days: 30, price: 3890, index: 102.1, status: 'Economy Early Bird' },
-        { window: '15 Days Out', days: 15, price: 4450, index: 109.4, status: 'Standard Booking' },
-        { window: '7 Days Out', days: 7, price: 5840, index: 118.4, status: 'Surge Acceleration' },
-        { window: '0–3 Days (Same Day)', days: 2, price: 9650, index: 148.2, status: 'Peak Dynamic Surge' },
-      ]
-    }
-    const tiers = [
-      { window: '30 Days Out', days: 30, fallback: 3890, status: 'Economy Early Bird' },
-      { window: '15 Days Out', days: 15, fallback: 4450, status: 'Standard Booking' },
-      { window: '7 Days Out', days: 7, fallback: 5840, status: 'Surge Acceleration' },
-      { window: '0–3 Days (Same Day)', days: 1, fallback: 9650, status: 'Peak Dynamic Surge' },
-    ]
-    return tiers.map((t) => {
-      const match = routeFlights.filter((f) => (t.days === 1 ? f.advance_days <= 3 : f.advance_days === t.days))
-      const avg = match.length > 0
-        ? Math.round(match.reduce((acc, f) => acc + f.total_fare, 0) / match.length)
-        : t.fallback
-      return {
-        window: t.window,
-        days: t.days,
-        price: avg,
-        index: Number(((avg / (t.fallback * 0.95)) * 100).toFixed(1)),
-        status: t.status,
-      }
-    })
-  }, [routeFlights])
+  const advanceCurve = [
+    { window: '30 Days Out', days: 30, price: 3890, index: 102.1, status: 'Economy Early Bird' },
+    { window: '15 Days Out', days: 15, price: 4450, index: 109.4, status: 'Standard Booking' },
+    { window: '7 Days Out', days: 7, price: 5840, index: 118.4, status: 'Surge Acceleration' },
+    { window: '0–3 Days (Same Day)', days: 2, price: 9650, index: 148.2, status: 'Peak Dynamic Surge' },
+  ]
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
@@ -488,7 +451,7 @@ export default function RouteAnalytics({ onBackToLanding, onGoToDashboard }) {
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 px-4 py-2.5 rounded-xl bg-slate-950/95 border border-cyan-400 shadow-2xl backdrop-blur-xl flex flex-wrap items-center gap-4 text-xs font-mono">
               <div className="flex items-center gap-1.5 text-cyan-300">
                 <span className="text-slate-400">Price:</span>
-                <span className="font-bold text-white text-sm">{displayedAvgPrice}</span>
+                <span className="font-bold text-white text-sm">{activeRoute.avgPrice}</span>
               </div>
               <span className="text-slate-700">|</span>
               <div className="flex items-center gap-1.5 text-amber-400">
