@@ -264,15 +264,15 @@ export default function LiveDemoTable() {
         <div className="mt-4 rounded-xl bg-white border border-slate-200 overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs font-sans">
-              <thead className="bg-[#f1f5f9] text-slate-700 font-mono text-[11px] uppercase tracking-wider border-b border-slate-200">
+              <thead className="bg-slate-200/90 text-[#091d38] font-sans border-b-2 border-slate-300">
                 <tr>
-                  <th className="py-3.5 px-4 font-semibold">Corridor & Carrier</th>
-                  <th className="py-3.5 px-4 font-semibold">Horizon</th>
-                  <th className="py-3.5 px-4 font-semibold text-right">Raw Fare</th>
-                  <th className="py-3.5 px-4 font-semibold text-right">Ancillary Fees</th>
-                  <th className="py-3.5 px-4 font-semibold text-right text-emerald-700">Pure Base Fare</th>
-                  <th className="py-3.5 px-4 font-semibold text-right text-amber-700">Jevons Rel (P_t/P_0)</th>
-                  <th className="py-3.5 px-4 font-semibold text-center">Status</th>
+                  <th className="py-4 px-4 text-xs sm:text-sm font-extrabold text-[#091d38] tracking-wide uppercase" style={{ fontWeight: 800 }}>Corridor & Carrier</th>
+                  <th className="py-4 px-4 text-xs sm:text-sm font-extrabold text-[#091d38] tracking-wide uppercase" style={{ fontWeight: 800 }}>Horizon</th>
+                  <th className="py-4 px-4 text-xs sm:text-sm font-extrabold text-right text-[#091d38] tracking-wide uppercase" style={{ fontWeight: 800 }}>Raw Fare</th>
+                  <th className="py-4 px-4 text-xs sm:text-sm font-extrabold text-right text-[#091d38] tracking-wide uppercase" style={{ fontWeight: 800 }}>Ancillary Fees</th>
+                  <th className="py-4 px-4 text-xs sm:text-sm font-extrabold text-right text-emerald-900 tracking-wide uppercase" style={{ fontWeight: 800 }}>Pure Base Fare</th>
+                  <th className="py-4 px-4 text-xs sm:text-sm font-extrabold text-right text-amber-900 tracking-wide uppercase" style={{ fontWeight: 800 }}>Jevons Rel (P_t/P_0)</th>
+                  <th className="py-4 px-4 text-xs sm:text-sm font-extrabold text-center text-[#091d38] tracking-wide uppercase" style={{ fontWeight: 800 }}>Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">

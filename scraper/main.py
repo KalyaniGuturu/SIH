@@ -65,7 +65,28 @@ def run_collection_cycle():
         json.dump(collected_batch, f, indent=2)
     logger.info(f"Updated latest processed feed at: {processed_file}")
 
+    # Auto-push to backend API and trigger index recalculation
+    try:
+        import requests
+        backend_url = os.getenv("BACKEND_API_URL", "http://127.0.0.1:8000")
+        logger.info(f"Auto-ingesting {len(collected_batch)} scraped quotes to backend at {backend_url}...")
+        
+        batch_res = requests.post(f"{backend_url}/api/flights/batch", json=collected_batch, timeout=10)
+        if batch_res.status_code == 201:
+            res_data = batch_res.json()
+            logger.info(f"Backend ingested successfully: {res_data.get('records_saved', 0)} new records saved to database.")
+            
+            # Recalculate index
+            calc_res = requests.post(f"{backend_url}/api/index/calculate", json={}, timeout=10)
+            if calc_res.status_code == 200:
+                logger.info("Airfare Index recalculated and synced with latest scraped data!")
+        else:
+            logger.warning(f"Backend returned status {batch_res.status_code}: {batch_res.text}")
+    except Exception as e:
+        logger.warning(f"Could not auto-sync to backend (is FastAPI server running?): {e}")
+
     return collected_batch
 
 if __name__ == "__main__":
     run_collection_cycle()
+
