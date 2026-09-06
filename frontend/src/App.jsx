@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import HeaderBanner from './components/HeaderBanner'
 import Navbar from './components/Navbar'
 import HeroSection from './components/HeroSection'
 import LivePipelineHealth from './components/LivePipelineHealth'
@@ -12,18 +11,22 @@ export default function App() {
   // 'overview' | 'pipeline-health' | 'corridors' | 'radar' | 'dashboard'
   const [currentView, setCurrentView] = useState('overview')
 
-  // Listen to hash changes for deep linking (#overview, #pipeline-health, #corridors, #radar, #dashboard)
+  // Listen to hash changes for deep linking (#overview, #pipeline-health, #corridors, #radar, #dashboard, #admin)
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.replace('#', '')
-      if (['overview', 'pipeline-health', 'corridors', 'radar', 'dashboard'].includes(hash)) {
-        setCurrentView(hash)
+      if (['overview', 'pipeline-health', 'corridors', 'radar', 'tracker', 'dashboard', 'admin'].includes(hash)) {
+        if (hash === 'admin') setCurrentView('dashboard')
+        else if (hash === 'tracker') setCurrentView('radar')
+        else setCurrentView(hash)
       }
     }
 
     const initialHash = window.location.hash.replace('#', '')
-    if (['overview', 'pipeline-health', 'corridors', 'radar', 'dashboard'].includes(initialHash)) {
-      setCurrentView(initialHash)
+    if (['overview', 'pipeline-health', 'corridors', 'radar', 'tracker', 'dashboard', 'admin'].includes(initialHash)) {
+      if (initialHash === 'admin') setCurrentView('dashboard')
+      else if (initialHash === 'tracker') setCurrentView('radar')
+      else setCurrentView(initialHash)
     }
 
     window.addEventListener('hashchange', handleHashChange)
@@ -33,16 +36,13 @@ export default function App() {
   // Navigation handler: directly switches the active view without page scrolling
   const handleNavigate = (view) => {
     window.location.hash = `#${view}`
-    setCurrentView(view)
+    setCurrentView(view === 'admin' ? 'dashboard' : view)
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-cyan-500 selection:text-slate-950">
+    <div className="min-h-screen bg-[#f4f6f9] text-slate-800 flex flex-col font-sans selection:bg-amber-500 selection:text-white">
       
-      {/* 1. Official Header Banner */}
-      <HeaderBanner />
-
-      {/* 2. Top Navigation Bar with Direct View Switching Tabs */}
+      {/* Top Navigation Bar with Direct View Switching Tabs */}
       <Navbar
         currentView={currentView}
         onNavigate={handleNavigate}
@@ -72,7 +72,7 @@ export default function App() {
         {currentView === 'dashboard' && (
           <Dashboard
             onBackToLanding={() => handleNavigate('overview')}
-            onGoToRouteAnalytics={() => handleNavigate('radar')}
+            onGoToRouteAnalytics={() => handleNavigate('tracker')}
           />
         )}
       </main>
