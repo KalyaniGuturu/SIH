@@ -174,11 +174,8 @@ export default function HeroSection({ onNavigate }) {
 
               {/* Title */}
               <h2 className="text-xl sm:text-2xl font-bold font-heading text-white mt-5">
-                National Airfare Price Index
+                National Airfare Index
               </h2>
-              <p className="text-xs sm:text-sm text-slate-400 font-mono mt-1">
-                Axiomatic unweighted geometric composite across 142 Indian flight corridors
-              </p>
 
               {/* Giant Index Number Display */}
               <div className="mt-6 flex flex-wrap items-baseline gap-4">
