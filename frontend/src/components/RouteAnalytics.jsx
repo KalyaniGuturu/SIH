@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import {
   Plane,
   ArrowLeft,
@@ -17,7 +17,6 @@ import {
   CheckCircle2,
   AlertCircle
 } from 'lucide-react'
-import { getLatestIndex, getRoutes } from '../api'
 
 export default function RouteAnalytics({ onBackToLanding, onGoToDashboard }) {
   // Route selection
@@ -99,23 +98,8 @@ export default function RouteAnalytics({ onBackToLanding, onGoToDashboard }) {
   const [dateRange, setDateRange] = useState('30d')
   const [carrierFilter, setCarrierFilter] = useState('all') // 'all' | 'direct' | 'ota'
   const [isRadarHovered, setIsRadarHovered] = useState(false)
-  const [availableRoutes, setAvailableRoutes] = useState([])
-  const [latestIndexes, setLatestIndexes] = useState([])
-
-  useEffect(() => {
-    Promise.all([getRoutes(), getLatestIndex()])
-      .then(([routes, indexes]) => {
-        setAvailableRoutes(routes)
-        setLatestIndexes(indexes)
-      })
-      .catch(() => {
-        // Keep the curated route metadata when the backend is offline.
-      })
-  }, [])
 
   const activeRoute = routesList.find((r) => r.id === selectedRouteId) || routesList[0]
-  const liveIndex = latestIndexes.find((record) => record.route === activeRoute.id)
-  const displayedRouteIndex = liveIndex?.index_value ?? activeRoute.routeIndex
 
   // Filtered dropdown list
   const filteredRoutes = routesList.filter(
@@ -288,7 +272,7 @@ export default function RouteAnalytics({ onBackToLanding, onGoToDashboard }) {
                 onChange={(e) => setSelectedRouteId(e.target.value)}
                 className="px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs font-mono text-cyan-300 focus:outline-none focus:border-cyan-400 cursor-pointer shadow-inner pr-8"
               >
-                {routesList.filter((r) => availableRoutes.length === 0 || availableRoutes.includes(r.id)).map((r) => (
+                {routesList.map((r) => (
                   <option key={r.id} value={r.id} className="bg-slate-900 text-white">
                     {r.originCode} ✈️ {r.destCode} ({r.id})
                   </option>
@@ -359,7 +343,7 @@ export default function RouteAnalytics({ onBackToLanding, onGoToDashboard }) {
               </div>
               <div className="text-slate-400">
                 Route Jevons Index:{' '}
-                <span className="text-cyan-300 font-bold">{displayedRouteIndex.toFixed(1)}</span>
+                <span className="text-cyan-300 font-bold">{activeRoute.routeIndex}</span>
               </div>
             </div>
           </div>
@@ -456,7 +440,7 @@ export default function RouteAnalytics({ onBackToLanding, onGoToDashboard }) {
               <span className="text-slate-700">|</span>
               <div className="flex items-center gap-1.5 text-amber-400">
                 <span className="text-slate-400">Route Index:</span>
-                <span className="font-bold text-amber-300">{displayedRouteIndex.toFixed(1)}</span>
+                <span className="font-bold text-amber-300">{activeRoute.routeIndex}</span>
               </div>
               <span className="text-slate-700">|</span>
               <div className="flex items-center gap-1.5 text-emerald-400">

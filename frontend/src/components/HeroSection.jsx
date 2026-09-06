@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { TrendingUp, Database, MapPin, ArrowRight, Clock, Calendar, CheckCircle2, Activity, Info, BarChart3 } from 'lucide-react'
-import { getIndexHistory, getLatestIndex } from '../api'
 
 export default function HeroSection({ onNavigate }) {
   const [hoveredPoint, setHoveredPoint] = useState(null)
   const [lastUpdatedTime, setLastUpdatedTime] = useState('04 Sep 2026, 03:30 PM IST')
-  const [latestComposite, setLatestComposite] = useState(null)
-  const [history, setHistory] = useState([])
 
   useEffect(() => {
     // Keep updated date and time in layout
@@ -22,17 +19,6 @@ export default function HeroSection({ onNavigate }) {
       timeZone: 'Asia/Kolkata'
     }) + ' IST'
     setLastUpdatedTime(formatted)
-  }, [])
-
-  useEffect(() => {
-    Promise.all([getLatestIndex(), getIndexHistory('COMPOSITE')])
-      .then(([latest, historical]) => {
-        setLatestComposite(latest.find((record) => record.route === 'COMPOSITE') || null)
-        setHistory(historical)
-      })
-      .catch(() => {
-        // Keep the overview demo values when the backend is offline.
-      })
   }, [])
 
   // 3 Complementary Key Indicator Cards (Placed below the 50/50 hero index block)
@@ -73,7 +59,7 @@ export default function HeroSection({ onNavigate }) {
   ]
 
   // Trend Graph Data for National Airfare Index (Past 30 Days)
-  const fallbackGraphData = [
+  const indexGraphData = [
     { day: '06 Aug', index: 108.5 },
     { day: '10 Aug', index: 110.2 },
     { day: '14 Aug', index: 112.8 },
@@ -84,11 +70,6 @@ export default function HeroSection({ onNavigate }) {
     { day: '02 Sep', index: 117.8 },
     { day: '04 Sep', index: 118.4 },
   ]
-  const indexGraphData = history.length > 0
-    ? [...history].reverse().map((record) => ({ day: record.date, index: record.index_value }))
-    : fallbackGraphData
-  const displayedIndex = latestComposite?.index_value ?? 118.4
-  const displayedBase = latestComposite?.base_value ?? 100
 
   const svgWidth = 520
   const svgHeight = 220
@@ -180,7 +161,7 @@ export default function HeroSection({ onNavigate }) {
               {/* Giant Index Number Display */}
               <div className="mt-6 flex flex-wrap items-baseline gap-4">
                 <span className="text-6xl sm:text-7xl font-black font-mono text-white tracking-tight">
-                  {displayedIndex.toFixed(1)}
+                  118.4
                 </span>
                 
                 <div className="space-y-1">
@@ -242,7 +223,7 @@ export default function HeroSection({ onNavigate }) {
                 <div className="flex items-center gap-3 text-xs font-mono">
                   <div className="flex items-center gap-1.5">
                     <span className="w-3 h-0.5 bg-cyan-400"></span>
-                    <span className="text-cyan-300 text-[11px]">Index ({displayedIndex.toFixed(1)})</span>
+                    <span className="text-cyan-300 text-[11px]">Index (118.4)</span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <span className="w-3 h-0.5 bg-amber-500 border-dashed"></span>
@@ -369,7 +350,7 @@ export default function HeroSection({ onNavigate }) {
                 <span className="text-slate-200 font-bold">108.5 &rarr; 119.5</span>
               </div>
               <div className="text-amber-400 font-bold">
-                Current: {displayedIndex.toFixed(1)} (+{(displayedIndex - displayedBase).toFixed(1)}%)
+                Current: 118.4 (+18.4%)
               </div>
             </div>
           </div>
