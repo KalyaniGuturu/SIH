@@ -1,53 +1,65 @@
+:root, html {
+  color-scheme: light !important;
+  scroll-behavior: smooth;
+}
+
+/* Ensure cursor and caret are always visible and distinct, never blending with background */
+* {
+  caret-color: #0b2545 !important;
+}
+
+input, textarea, select {
+  color-scheme: light !important;
+  caret-color: #0b2545 !important;
+  color: #0f172a !important;
+  cursor: text !important;
+}
+
+input::placeholder, textarea::placeholder {
+  color: #64748b !important;
+}
+
+button, [role="button"], select, a, .cursor-pointer {
+  cursor: pointer !important;
+}
+
 @layer base {
   body {
-    background-color: #020617;
-    color: #f8fafc;
+    background-color: #f4f6f9;
+    color: #1e293b;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
   }
 }
 
-/* Background Cyber Grid Pattern */
-.bg-grid-pattern {
-  background-size: 40px 40px;
-  background-image: 
-    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+/* Official Government Card Styling */
+.gov-card {
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07), 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
-.bg-radial-gradient {
-  background: radial-gradient(circle at 50% 20%, rgba(6, 182, 212, 0.12) 0%, rgba(245, 158, 11, 0.05) 35%, transparent 70%);
+.gov-card-hover {
+  transition: all 0.2s ease-in-out;
 }
 
-/* Glassmorphism utility */
-.glass-panel {
-  background: rgba(15, 23, 42, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+.gov-card-hover:hover {
+  border-color: #94a3b8;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
 }
 
-.glass-panel-hover {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.glass-panel-hover:hover {
-  background: rgba(30, 41, 59, 0.8);
-  border-color: rgba(34, 211, 238, 0.3);
-  transform: translateY(-2px);
-  box-shadow: 0 12px 30px -10px rgba(34, 211, 238, 0.15);
-}
-
-/* Custom Scrollbar */
+/* Clean Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 7px;
+  height: 7px;
 }
 ::-webkit-scrollbar-track {
-  background: #020617;
+  background: #f1f5f9;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: #cbd5e1;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: #94a3b8;
 }
+

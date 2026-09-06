@@ -1,11 +1,12 @@
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en" style="color-scheme: light;">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AirIndex MoSPI | SIH 2026 - Problem SIH26056</title>
-    <meta name="description" content="MoSPI Airfare CPI Augmentation Platform - Dynamic Airfare Price Index for National Inflation Tracking using Real-Time Web Scraping (SIH 2026)" />
+    <meta name="color-scheme" content="light" />
+    <title>National Airfare Index - SIH26056</title>
+    <meta name="description" content="National Airfare Index Platform - Dynamic Airfare Index for National Inflation Tracking using Real-Time Web Scraping (SIH 2026)" />
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,51 +17,41 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
-        darkMode: 'class',
         theme: {
           extend: {
             colors: {
-              navy: {
-                950: '#030712',
-                900: '#070d1e',
-                850: '#0b1329',
-                800: '#0f1a36',
-                700: '#192b55'
+              ashokanavy: {
+                950: '#06162a',
+                900: '#091d38',
+                800: '#0b2545',
+                700: '#10335e',
+                600: '#174785',
+                500: '#1d5ca8'
               },
               saffron: {
                 400: '#fbbf24',
                 500: '#f59e0b',
-                600: '#d97706'
+                600: '#d97706',
+                700: '#b45309'
               },
-              cyan: {
-                300: '#67e8f9',
-                400: '#22d3ee',
-                500: '#06b6d4',
-                900: '#164e63'
+              indiagreen: {
+                500: '#10b981',
+                600: '#059669',
+                700: '#15803d',
+                800: '#166534'
               }
             },
             fontFamily: {
-              sans: ['Inter', 'system-ui', 'sans-serif'],
+              sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
               heading: ['Outfit', 'Inter', 'sans-serif'],
               mono: ['"JetBrains Mono"', 'monospace']
-            },
-            animation: {
-              'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-              'glow': 'glow 2.5s ease-in-out infinite alternate',
-              'spin-slow': 'spin 20s linear infinite',
-            },
-            keyframes: {
-              glow: {
-                '0%': { boxShadow: '0 0 15px rgba(34, 211, 238, 0.2)' },
-                '100%': { boxShadow: '0 0 30px rgba(34, 211, 238, 0.5)' }
-              }
             }
           }
         }
       }
     </script>
   </head>
-  <body class="bg-slate-950 text-slate-100 antialiased selection:bg-cyan-500 selection:text-slate-950 overflow-x-hidden min-h-screen">
+  <body class="bg-[#f4f6f9] text-slate-800 antialiased selection:bg-amber-500 selection:text-white overflow-x-hidden min-h-screen">
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
