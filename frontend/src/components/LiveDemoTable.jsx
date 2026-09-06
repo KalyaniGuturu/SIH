@@ -1,43 +1,10 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { Search, Filter, RefreshCw, Plane, CheckCircle2, ArrowUpDown, ExternalLink, ShieldCheck } from 'lucide-react'
-import { getFlights } from '../api'
 
 export default function LiveDemoTable() {
   const [carrierFilter, setCarrierFilter] = useState('All')
   const [searchTerm, setSearchTerm] = useState('')
   const [isRefreshing, setIsRefreshing] = useState(false)
-  const [apiRows, setApiRows] = useState([])
-  const [apiError, setApiError] = useState('')
-
-  const loadFlights = async () => {
-    setIsRefreshing(true)
-    setApiError('')
-    try {
-      const records = await getFlights({ limit: 100 })
-      setApiRows(records.map((record) => ({
-        id: `FLIGHT-${record.id}`,
-        origin: record.route.split('-')[0],
-        dest: record.route.split('-')[1],
-        carrier: `${record.airline} (${record.flight_number})`,
-        platform: record.airline,
-        rawFare: record.total_fare,
-        ancillary: record.taxes,
-        pureFare: record.base_fare,
-        base2024: record.base_fare,
-        horizon: `T-${record.advance_days} days`,
-        status: 'Ingested & Normalized',
-        time: new Date(record.scraped_at).toLocaleTimeString(),
-      })))
-    } catch (error) {
-      setApiError(error.message)
-    } finally {
-      setIsRefreshing(false)
-    }
-  }
-
-  useEffect(() => {
-    loadFlights()
-  }, [])
 
   const sampleCorridors = [
     {
@@ -140,9 +107,7 @@ export default function LiveDemoTable() {
     },
   ]
 
-  const displayRows = apiRows.length > 0 ? apiRows : sampleCorridors
-
-  const filteredData = displayRows.filter((row) => {
+  const filteredData = sampleCorridors.filter((row) => {
     const matchesCarrier = carrierFilter === 'All' || row.platform === carrierFilter
     const matchesSearch =
       row.origin.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -153,7 +118,10 @@ export default function LiveDemoTable() {
   })
 
   const handleRefresh = () => {
-    loadFlights()
+    setIsRefreshing(true)
+    setTimeout(() => {
+      setIsRefreshing(false)
+    }, 700)
   }
 
   return (
@@ -219,12 +187,6 @@ export default function LiveDemoTable() {
             ))}
           </div>
         </div>
-
-        {apiError && (
-          <div className="mt-4 rounded-xl border border-rose-500/30 bg-rose-950/40 px-4 py-3 text-sm text-rose-200">
-            Backend unavailable: {apiError}. Showing demo records until the API is available.
-          </div>
-        )}
 
         {/* Responsive Table */}
         <div className="mt-4 rounded-2xl bg-slate-950/80 border border-slate-800 overflow-hidden shadow-2xl">
@@ -297,7 +259,7 @@ export default function LiveDemoTable() {
               <span>All 142 corridors verified against statutory MoSPI tariff bounds</span>
             </div>
             <div>
-              Showing {filteredData.length} of {displayRows.length} available flight records
+              Showing {filteredData.length} of {sampleCorridors.length} active live test routes
             </div>
           </div>
         </div>

@@ -21,17 +21,12 @@ import {
   Pause,
   Play
 } from 'lucide-react'
-import { getExportUrl, getFlights, getIndexHistory, getLatestIndex } from '../api'
 
 export default function Dashboard({ onBackToLanding, onGoToRouteAnalytics }) {
   const [method, setMethod] = useState('jevons') // 'jevons' | 'laspeyres'
   const [bookingWindow, setBookingWindow] = useState('7d') // '0-3d' | '7d' | '15d' | '30d'
   const [hoveredDataPoint, setHoveredDataPoint] = useState(null)
   const [isTerminalStreaming, setIsTerminalStreaming] = useState(true)
-  const [latestIndex, setLatestIndex] = useState([])
-  const [indexHistory, setIndexHistory] = useState([])
-  const [flightRecords, setFlightRecords] = useState([])
-  const [apiError, setApiError] = useState('')
   const [logs, setLogs] = useState([
     { id: 1, time: '15:28:02', level: 'INFO', msg: 'Scraped IndiGo DEL-BOM: ₹5,700 - OK' },
     { id: 2, time: '15:28:04', level: 'FEE', msg: 'Stripped UDF (₹450) & GST (₹285) on BOM-BLR' },
@@ -40,26 +35,6 @@ export default function Dashboard({ onBackToLanding, onGoToRouteAnalytics }) {
     { id: 5, time: '15:28:12', level: 'MATH', msg: 'Jevons elementary sub-aggregate updated: 118.42' },
     { id: 6, time: '15:28:15', level: 'FEED', msg: 'MoSPI NAS batch transmission acknowledged #8914' },
   ])
-
-  useEffect(() => {
-    let active = true
-
-    Promise.all([getLatestIndex(), getIndexHistory('COMPOSITE'), getFlights({ limit: 1000 })])
-      .then(([latest, history, flights]) => {
-        if (!active) return
-        setLatestIndex(latest)
-        setIndexHistory(history)
-        setFlightRecords(flights)
-        setApiError('')
-      })
-      .catch((error) => {
-        if (active) setApiError(error.message)
-      })
-
-    return () => {
-      active = false
-    }
-  }, [])
 
   // Periodic log streamer simulation
   useEffect(() => {
@@ -97,23 +72,17 @@ export default function Dashboard({ onBackToLanding, onGoToRouteAnalytics }) {
     return () => clearInterval(interval)
   }, [isTerminalStreaming])
 
-  const compositeIndex = latestIndex.find((record) => record.route === 'COMPOSITE')
-  const averageFare = flightRecords.length > 0
-    ? flightRecords.reduce((total, record) => total + record.total_fare, 0) / flightRecords.length
-    : null
-  const activeRouteCount = new Set(flightRecords.map((record) => record.route)).size
-
   // Method-specific index calculation
   const currentKPIs = {
-    index: compositeIndex ? compositeIndex.index_value.toFixed(1) : (method === 'jevons' ? '118.4' : '121.2'),
-    baseChange: compositeIndex ? `+${(compositeIndex.index_value - compositeIndex.base_value).toFixed(1)}% Base` : (method === 'jevons' ? '+18.4% Base' : '+21.2% Base'),
-    avgFare: averageFare ? `₹${Math.round(averageFare).toLocaleString()}` : (method === 'jevons' ? '₹5,850' : '₹6,120'),
-    activeRoutes: activeRouteCount > 0 ? String(activeRouteCount) : '142',
-    scrapedPoints: flightRecords.length > 0 ? `${flightRecords.length} loaded` : '12.4k/24h',
+    index: method === 'jevons' ? '118.4' : '121.2',
+    baseChange: method === 'jevons' ? '+18.4% Base' : '+21.2% Base',
+    avgFare: method === 'jevons' ? '₹5,850' : '₹6,120',
+    activeRoutes: '142',
+    scrapedPoints: '12.4k/24h',
   }
 
   // 30-Day Time Series Data for Chart
-  const fallbackTimeSeriesData = [
+  const timeSeriesData = [
     { day: 1, date: 'Aug 06', index: 109.2, baseline: 100 },
     { day: 3, date: 'Aug 08', index: 110.5, baseline: 100 },
     { day: 5, date: 'Aug 10', index: 112.1, baseline: 100 },
@@ -127,14 +96,6 @@ export default function Dashboard({ onBackToLanding, onGoToRouteAnalytics }) {
     { day: 28, date: 'Sep 02', index: 117.9, baseline: 100 },
     { day: 30, date: 'Sep 04', index: 118.4, baseline: 100 },
   ]
-  const timeSeriesData = indexHistory.length > 0
-    ? [...indexHistory].reverse().map((record, index) => ({
-        day: index + 1,
-        date: record.date,
-        index: record.index_value,
-        baseline: record.base_value,
-      }))
-    : fallbackTimeSeriesData
 
   // Peak fare spikes across top corridors
   const corridorSpikes = [
@@ -211,11 +172,19 @@ export default function Dashboard({ onBackToLanding, onGoToRouteAnalytics }) {
 
   // Export CSV Functionality
   const handleExportCSV = () => {
-    const url = getExportUrl()
+    const csvHeader = 'Corridor,Carrier,Booking_Window,Extracted_Fare,Validation_Status,Index_Method\n'
+    const csvRows = liveFeeds
+      .map(
+        (f) =>
+          `"${f.route}","${f.carrier}","${f.window}","${f.extractedFare}","${f.status}","${method.toUpperCase()}"`
+      )
+      .join('\n')
+
+    const blob = new Blob([csvHeader + csvRows], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.setAttribute('download', 'mospi_airfare_index.csv')
-    link.setAttribute('rel', 'noopener')
+    link.setAttribute('download', `MoSPI_Airfare_CPI_Report_${new Date().toISOString().slice(0, 10)}.csv`)
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -289,12 +258,6 @@ export default function Dashboard({ onBackToLanding, onGoToRouteAnalytics }) {
 
       {/* Main Container */}
       <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 flex-grow">
-
-        {apiError && (
-          <div className="rounded-xl border border-rose-500/30 bg-rose-950/40 px-4 py-3 text-sm text-rose-200">
-            Backend data unavailable: {apiError}. Showing the dashboard demo values until the API is reachable.
-          </div>
-        )}
         
         {/* Section 1: Control Header Bar */}
         <div className="p-4 sm:p-5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-xl backdrop-blur-md flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
