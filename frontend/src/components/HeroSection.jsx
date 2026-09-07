@@ -11,10 +11,41 @@ export default function HeroSection({ onNavigate }) {
   const [liveFaresCount, setLiveFaresCount] = useState(109)
   const [liveIndexValue, setLiveIndexValue] = useState(144.0)
 
-  // Generate 12-slot hourly data points ending at fixed time 6th Sep 2026, 10:00 PM (22:00 IST)
+  const formatISTDateWithSuffix = (d = new Date()) => {
+    try {
+      const parts = new Intl.DateTimeFormat('en-IN', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+        timeZone: 'Asia/Kolkata',
+      }).formatToParts(d)
+      
+      const day = parts.find(p => p.type === 'day')?.value || '7'
+      const month = parts.find(p => p.type === 'month')?.value || 'Sep'
+      const year = parts.find(p => p.type === 'year')?.value || '2026'
+      const hour = parts.find(p => p.type === 'hour')?.value || '11'
+      const minute = parts.find(p => p.type === 'minute')?.value || '00'
+      const dayPeriod = parts.find(p => p.type === 'dayPeriod')?.value?.toUpperCase() || 'AM'
+
+      const dNum = parseInt(day, 10)
+      const suffix = (dNum % 10 === 1 && dNum !== 11) ? 'st' : (dNum % 10 === 2 && dNum !== 12) ? 'nd' : (dNum % 10 === 3 && dNum !== 13) ? 'rd' : 'th'
+
+      return `${dNum}${suffix} ${month} ${year}, ${hour}:${minute} ${dayPeriod}`
+    } catch {
+      return '7th Sep 2026, 11:00 AM'
+    }
+  }
+
+  // Generate 12-slot hourly data points dynamically ending at current IST hour
   const getISTHourlyData = () => {
-    const curHour = 22 // 10:00 PM IST
-    const curMin = 0
+    let curHour = 11
+    try {
+      const hStr = new Intl.DateTimeFormat('en-IN', { hour: 'numeric', hour12: false, timeZone: 'Asia/Kolkata' }).format(new Date())
+      curHour = parseInt(hStr, 10) || 11
+    } catch {}
 
     const diurnalCurve = [116.8, 116.2, 115.8, 116.5, 117.4, 118.6, 119.1, 118.9, 118.2, 118.5, 119.4, 118.4]
     const diurnalFares = [480, 350, 290, 620, 1120, 1450, 1510, 1390, 1420, 1680, 1240, 890]
@@ -27,8 +58,8 @@ export default function HeroSection({ onNavigate }) {
       const curveIdx = Math.floor(h / 2) % 12
 
       data.push({
-        hour: isCurrent ? `${hourLabel} (7th Sep 2026, 11:00 AM)` : hourLabel,
-        displayHour: isCurrent ? '22:00' : hourLabel,
+        hour: isCurrent ? `${hourLabel} (Live IST Sync)` : hourLabel,
+        displayHour: hourLabel,
         index: isCurrent ? 118.4 : diurnalCurve[curveIdx],
         fares: isCurrent ? 1240 : diurnalFares[curveIdx],
         isCurrent,
@@ -41,21 +72,9 @@ export default function HeroSection({ onNavigate }) {
 
   useEffect(() => {
     const updateTime = () => {
-      const now = new Date()
-      const formatted = now.toLocaleDateString('en-IN', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-        timeZone: 'Asia/Kolkata'
-      }) + ', ' + now.toLocaleTimeString('en-IN', {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: true,
-        timeZone: 'Asia/Kolkata'
-      }) + ' IST'
-      setLastUpdatedTime(formatted)
+      setLastUpdatedTime(formatISTDateWithSuffix())
 
+      const now = new Date()
       setIstTimeString(now.toLocaleTimeString('en-IN', {
         hour: '2-digit',
         minute: '2-digit',
@@ -302,7 +321,7 @@ export default function HeroSection({ onNavigate }) {
                 <div className="flex items-center gap-2 text-slate-700">
                   <Clock className="w-4 h-4 text-amber-600 shrink-0" />
                   <span className="text-slate-500">Recently Updated:</span>
-                  <span className="font-bold text-slate-900 tracking-wide">7th Sep 2026, 11:00 AM</span>
+                  <span className="font-bold text-slate-900 tracking-wide">{lastUpdatedTime || '7th Sep 2026, 11:00 AM'}</span>
                 </div>
                 <span className="text-[11px] text-slate-500 flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
@@ -366,7 +385,7 @@ export default function HeroSection({ onNavigate }) {
                       <div className="flex items-center gap-2 text-[11px] text-slate-700 bg-white px-2.5 py-0.5 rounded border border-slate-200 shadow-2xs">
                         <Clock className="w-3 h-3 text-amber-600" />
                         <span className="text-slate-500">Updated:</span>
-                        <span className="font-bold text-amber-600">6th Sep 2026, 10:00 PM</span>
+                        <span className="font-bold text-amber-600">{lastUpdatedTime || '7th Sep 2026, 11:00 AM'}</span>
                       </div>
                     </div>
 
@@ -476,7 +495,7 @@ export default function HeroSection({ onNavigate }) {
                           <span className="text-slate-500">({hourlyData[hoveredHourlyPoint].fares.toLocaleString()} fares scraped)</span>
                           {hourlyData[hoveredHourlyPoint].isCurrent && (
                             <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-bold border border-emerald-300">
-                              6th Sep 2026, 10:00 PM
+                              {lastUpdatedTime || 'Live Dynamic Sync'}
                             </span>
                           )}
                         </div>
