@@ -27,7 +27,7 @@ export default function HeroSection({ onNavigate }) {
       const curveIdx = Math.floor(h / 2) % 12
 
       data.push({
-        hour: isCurrent ? `${hourLabel} (6th Sep 2026, 10:00 PM)` : hourLabel,
+        hour: isCurrent ? `${hourLabel} (7th Sep 2026, 11:00 AM)` : hourLabel,
         displayHour: isCurrent ? '22:00' : hourLabel,
         index: isCurrent ? 118.4 : diurnalCurve[curveIdx],
         fares: isCurrent ? 1240 : diurnalFares[curveIdx],
@@ -302,7 +302,7 @@ export default function HeroSection({ onNavigate }) {
                 <div className="flex items-center gap-2 text-slate-700">
                   <Clock className="w-4 h-4 text-amber-600 shrink-0" />
                   <span className="text-slate-500">Recently Updated:</span>
-                  <span className="font-bold text-slate-900 tracking-wide">6th Sep 2026, 10:00 PM</span>
+                  <span className="font-bold text-slate-900 tracking-wide">7th Sep 2026, 11:00 AM</span>
                 </div>
                 <span className="text-[11px] text-slate-500 flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
@@ -334,8 +334,8 @@ export default function HeroSection({ onNavigate }) {
                     <button
                       onClick={() => setActiveGraphTab('hourly')}
                       className={`px-2.5 py-1 rounded-md transition-all font-semibold ${activeGraphTab === 'hourly'
-                          ? 'bg-[#0b2545] text-white font-bold shadow-sm'
-                          : 'text-slate-600 hover:text-slate-900'
+                        ? 'bg-[#0b2545] text-white font-bold shadow-sm'
+                        : 'text-slate-600 hover:text-slate-900'
                         }`}
                     >
                       Hourly (IST Live)
@@ -343,8 +343,8 @@ export default function HeroSection({ onNavigate }) {
                     <button
                       onClick={() => setActiveGraphTab('daily')}
                       className={`px-2.5 py-1 rounded-md transition-all font-semibold ${activeGraphTab === 'daily'
-                          ? 'bg-[#0b2545] text-white font-bold shadow-sm'
-                          : 'text-slate-600 hover:text-slate-900'
+                        ? 'bg-[#0b2545] text-white font-bold shadow-sm'
+                        : 'text-slate-600 hover:text-slate-900'
                         }`}
                     >
                       Daily (24h Avg)
