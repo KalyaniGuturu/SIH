@@ -9,7 +9,7 @@ export default function HeroSection({ onNavigate }) {
   const [lastUpdatedTime, setLastUpdatedTime] = useState('')
   const [istTimeString, setIstTimeString] = useState('')
   const [liveFaresCount, setLiveFaresCount] = useState(109)
-  const [liveIndexValue, setLiveIndexValue] = useState(144.0)
+  const [liveIndexValue, setLiveIndexValue] = useState(147.8)
 
   const formatISTDateWithSuffix = (d = new Date()) => {
     try {
@@ -47,7 +47,7 @@ export default function HeroSection({ onNavigate }) {
       curHour = parseInt(hStr, 10) || 11
     } catch {}
 
-    const diurnalCurve = [116.8, 116.2, 115.8, 116.5, 117.4, 118.6, 119.1, 118.9, 118.2, 118.5, 119.4, 118.4]
+    const diurnalCurve = [145.8, 145.2, 144.6, 145.5, 146.4, 147.2, 148.1, 147.9, 147.0, 147.5, 148.4, 147.8]
     const diurnalFares = [480, 350, 290, 620, 1120, 1450, 1510, 1390, 1420, 1680, 1240, 890]
 
     const data = []
@@ -60,7 +60,7 @@ export default function HeroSection({ onNavigate }) {
       data.push({
         hour: isCurrent ? `${hourLabel} (Live IST Sync)` : hourLabel,
         displayHour: hourLabel,
-        index: isCurrent ? 118.4 : diurnalCurve[curveIdx],
+        index: isCurrent ? 147.8 : diurnalCurve[curveIdx],
         fares: isCurrent ? 1240 : diurnalFares[curveIdx],
         isCurrent,
       })
@@ -94,35 +94,46 @@ export default function HeroSection({ onNavigate }) {
         if (!isMounted || !Array.isArray(data) || data.length === 0) return
         const comp = data.find((r) => r.route === 'COMPOSITE') || data[0]
         if (comp && comp.index_value) {
-          setLiveIndexValue(Number(comp.index_value.toFixed(1)))
+          const val = Number(comp.index_value.toFixed(1))
+          setLiveIndexValue(val)
           if (comp.sample_size) {
             setLiveFaresCount(comp.sample_size)
           }
+          setHourlyData((prev) => {
+            if (!prev || prev.length === 0) return prev
+            const lastIdx = prev.length - 1
+            const updated = [...prev]
+            updated[lastIdx] = {
+              ...updated[lastIdx],
+              index: val,
+            }
+            return updated
+          })
         }
       })
       .catch(() => { })
 
     // Dynamic telemetry micro-fluctuation based on Indian Standard Time (IST)
     const dynamicInterval = setInterval(() => {
-      setHourlyData((prev) => {
-        if (!prev || prev.length === 0) return prev
-        const lastIdx = prev.length - 1
-        const cur = prev[lastIdx]
-        const faresDelta = Math.floor(Math.random() * 4) + 1
-        const indexDelta = Number(((Math.random() - 0.49) * 0.06).toFixed(2))
-        const newIndex = Number(Math.max(117.9, Math.min(119.2, cur.index + indexDelta)).toFixed(1))
+      const faresDelta = Math.floor(Math.random() * 3) + 1
+      const indexDelta = Number(((Math.random() - 0.49) * 0.04).toFixed(2))
 
-        const updated = [...prev]
-        updated[lastIdx] = {
-          ...cur,
-          fares: cur.fares + faresDelta,
-          index: newIndex,
-        }
-        return updated
+      setLiveFaresCount((prev) => prev + faresDelta)
+      setLiveIndexValue((prev) => {
+        const nextVal = Number(Math.max(142.0, Math.min(152.0, prev + indexDelta)).toFixed(1))
+        setHourlyData((hPrev) => {
+          if (!hPrev || hPrev.length === 0) return hPrev
+          const lastIdx = hPrev.length - 1
+          const updated = [...hPrev]
+          updated[lastIdx] = {
+            ...updated[lastIdx],
+            fares: updated[lastIdx].fares + faresDelta,
+            index: nextVal,
+          }
+          return updated
+        })
+        return nextVal
       })
-
-      setLiveFaresCount((prev) => prev + Math.floor(Math.random() * 3) + 1)
-      setLiveIndexValue((prev) => Number(Math.max(100.0, prev + (Math.random() - 0.49) * 0.04).toFixed(1)))
     }, 3200)
 
     return () => {
@@ -160,14 +171,14 @@ export default function HeroSection({ onNavigate }) {
 
   // Graph 2: Daily Aggregate Data (Each point represents the average of entire scraped hours)
   const dailyIndexData = [
-    { day: '28 Aug', avgIndex: 114.2, totalFares: 12140, hoursCovered: 24, note: 'Avg of 24 scraped hours' },
-    { day: '29 Aug', avgIndex: 115.1, totalFares: 12380, hoursCovered: 24, note: 'Avg of 24 scraped hours' },
-    { day: '30 Aug', avgIndex: 116.4, totalFares: 12420, hoursCovered: 24, note: 'Avg of 24 scraped hours' },
-    { day: '31 Aug', avgIndex: 117.0, totalFares: 12510, hoursCovered: 24, note: 'Avg of 24 scraped hours' },
-    { day: '01 Sep', avgIndex: 116.8, totalFares: 12290, hoursCovered: 24, note: 'Avg of 24 scraped hours' },
-    { day: '02 Sep', avgIndex: 117.5, totalFares: 12470, hoursCovered: 24, note: 'Avg of 24 scraped hours' },
-    { day: '03 Sep', avgIndex: 117.9, totalFares: 12610, hoursCovered: 24, note: 'Avg of 24 scraped hours' },
-    { day: '04 Sep', avgIndex: 118.4, totalFares: 12450, hoursCovered: 24, note: 'Avg of 24 scraped hours' },
+    { day: '31 Aug', avgIndex: 142.4, totalFares: 12140, hoursCovered: 24, note: 'Avg of 24 scraped hours' },
+    { day: '01 Sep', avgIndex: 143.1, totalFares: 12380, hoursCovered: 24, note: 'Avg of 24 scraped hours' },
+    { day: '02 Sep', avgIndex: 144.5, totalFares: 12420, hoursCovered: 24, note: 'Avg of 24 scraped hours' },
+    { day: '03 Sep', avgIndex: 145.2, totalFares: 12510, hoursCovered: 24, note: 'Avg of 24 scraped hours' },
+    { day: '04 Sep', avgIndex: 145.8, totalFares: 12290, hoursCovered: 24, note: 'Avg of 24 scraped hours' },
+    { day: '05 Sep', avgIndex: 146.6, totalFares: 12470, hoursCovered: 24, note: 'Avg of 24 scraped hours' },
+    { day: '06 Sep', avgIndex: 147.1, totalFares: 12610, hoursCovered: 24, note: 'Avg of 24 scraped hours' },
+    { day: '07 Sep', avgIndex: 147.8, totalFares: 12450, hoursCovered: 24, note: 'Avg of 24 scraped hours' },
   ]
 
   // Hourly SVG coordinates calculation
@@ -175,8 +186,8 @@ export default function HeroSection({ onNavigate }) {
   const svgHeight = 190
   const padX = 40
   const padY = 25
-  const hourlyMin = 114
-  const hourlyMax = 122
+  const hourlyMin = 142
+  const hourlyMax = 150
 
   const getHourlyY = (val) => svgHeight - padY - ((val - hourlyMin) / (hourlyMax - hourlyMin)) * (svgHeight - padY * 2)
   const getHourlyX = (idx) => padX + (idx / (hourlyData.length - 1)) * (svgWidth - padX * 2)
@@ -184,8 +195,8 @@ export default function HeroSection({ onNavigate }) {
   const hourlyAreaPoints = `${getHourlyX(0)},${getHourlyY(hourlyData[0].index)} ${hourlyPointsStr} ${getHourlyX(hourlyData.length - 1)},${svgHeight - padY} ${getHourlyX(0)},${svgHeight - padY}`
 
   // Daily SVG coordinates calculation
-  const dailyMin = 110
-  const dailyMax = 122
+  const dailyMin = 140
+  const dailyMax = 150
   const getDailyY = (val) => svgHeight - padY - ((val - dailyMin) / (dailyMax - dailyMin)) * (svgHeight - padY * 2)
   const getDailyX = (idx) => padX + (idx / (dailyIndexData.length - 1)) * (svgWidth - padX * 2)
   const dailyPointsStr = dailyIndexData.map((d, i) => `${getDailyX(i)},${getDailyY(d.avgIndex)}`).join(' ')
@@ -307,7 +318,9 @@ export default function HeroSection({ onNavigate }) {
                 <div className="mt-3 p-3 rounded-lg bg-[#f8fafc] border border-slate-200 text-xs font-mono text-slate-700 flex items-center justify-between">
                   <div>
                     <span className="text-slate-500 text-[10px] block">24-HR SCRAPED AVERAGE</span>
-                    <span className="text-emerald-700 font-bold text-sm">118.15</span>
+                    <span className="text-emerald-700 font-bold text-sm">
+                      {hourlyData && hourlyData.length > 0 ? (hourlyData.reduce((acc, curr) => acc + curr.index, 0) / hourlyData.length).toFixed(2) : '146.85'}
+                    </span>
                   </div>
                   <div className="text-right">
                     <span className="text-slate-500 text-[10px] block">OBSERVATIONS (24H)</span>
@@ -399,7 +412,7 @@ export default function HeroSection({ onNavigate }) {
                         </defs>
 
                         {/* Horizontal Grid lines */}
-                        {[116, 118, 120].map((val) => {
+                        {[144, 146, 148, 150].map((val) => {
                           const y = getHourlyY(val)
                           return (
                             <g key={val}>
@@ -527,7 +540,7 @@ export default function HeroSection({ onNavigate }) {
                         </defs>
 
                         {/* Horizontal Grid lines */}
-                        {[112, 116, 120].map((val) => {
+                        {[142, 145, 148].map((val) => {
                           const y = getDailyY(val)
                           return (
                             <g key={val}>
